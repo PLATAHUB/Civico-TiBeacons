@@ -1,0 +1,18 @@
+#
+# this is your module manifest and used by Titanium
+# during compilation, packaging, distribution, etc.
+#
+version: 0.1
+apiversion: 2
+description: Civico-TiBeacons
+author: Ecosistema Digital SAS Developers Team
+license: Specify your license
+copyright: Copyright (c) 2014 by Ecosistema Digital SAS
+
+
+# these should not be edited
+name: Civico-TiBeacons
+moduleid: com.civico.tibeacons
+guid: c5eddae9-14ee-4f31-9587-f6722916906f
+platform: android
+minsdk: 3.2.2.GA

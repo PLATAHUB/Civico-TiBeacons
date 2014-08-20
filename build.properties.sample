@@ -1,0 +1,4 @@
+titanium.platform=/Users/cristian/Library/Application Support/Titanium/mobilesdk/osx/3.2.2.GA/android
+android.platform=/Users/cristian/android/sdk/r23.0.2/platforms/android-10
+google.apis=/Users/cristian/android/sdk/r23.0.2/add-ons/addon-google_apis-google-10
+android.ndk=/Users/cristian/android/ndk/r9d

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="build/.apt_generated"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/Users/cristian/android/sdk/r23.0.2/platforms/android-10/android.jar"/>
+	<classpathentry kind="lib" path="/Users/cristian/Library/Application Support/Titanium/mobilesdk/osx/3.2.2.GA/android/titanium.jar"/>
+	<classpathentry kind="lib" path="/Users/cristian/Library/Application Support/Titanium/mobilesdk/osx/3.2.2.GA/android/kroll-common.jar"/>
+	<classpathentry kind="lib" path="/Users/cristian/Library/Application Support/Titanium/mobilesdk/osx/3.2.2.GA/android/kroll-apt.jar"/>
+        <classpathentry kind="lib" path="/Users/cristian/Library/Application Support/Titanium/mobilesdk/osx/3.2.2.GA/android/android-support-v4.jar"/>
+	<classpathentry kind="lib" path="lib/android-async-http-1.4.5.jar"/>
+	<classpathentry kind="lib" path="lib/estimote-sdk-preview-javadoc.jar"/>
+	<classpathentry kind="lib" path="lib/estimote-sdk-preview.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
