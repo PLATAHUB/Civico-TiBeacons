@@ -33,157 +33,154 @@ import com.loopj.android.http.JsonHttpResponseHandler;
 import android.app.NotificationManager;
 
 public class MonitorListener implements BeaconManager.MonitoringListener {
-	
-	private BeaconService service;
-	private NotificationManager notificationManager;
-	private Bitmap Large_Icon = null;
-	private TiApplication app;
-	private String APP_BACKEND;	
-	
-	public MonitorListener(BeaconService service) {
-		this.app = TiApplication.getInstance();
-		this.APP_BACKEND = "http://www.civico.com";
-		//this.APP_BACKEND = app.getAppProperties().getString("api.backend.url", null);
-		this.service = service;
-		this.notificationManager = (NotificationManager) this.service.getSystemService(Context.NOTIFICATION_SERVICE);
-	}
-	
-	@Override
-	public void onExitedRegion(Region region) {
-		Log.e(BeaconsModule.TAG, "onExitedRegion, Civico-TiBeacons Service!");
-		//notificationManager.cancel(CIV_NOTIFICATION_ID);
-		service.ableToNotify(false);
-	}
 
-	@Override
-	public void onEnteredRegion(Region region, List<Beacon> beacons) {
-		if(!beacons.isEmpty()){
-			Log.e(BeaconsModule.TAG, "onEnteredRegion, Civico-TiBeacons Beacon Minor: " + beacons.get(0).getMinor());
-			try {
-				requestOffer( beacons.get(0) );
-			} catch (MalformedURLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
-	
-	private void requestOffer(final Beacon beacon) throws MalformedURLException {
-		// Make a request and get an offer based a beacon data
-		AsyncHttpClient client = new AsyncHttpClient();
-		URL url = new URL(APP_BACKEND+"/api/v1/beacons/brands/"+beacon.getMinor());
-		client.get( url.toString(), null, new ResponseHandler(beacon));
-	}
+    private BeaconService service;
+    private NotificationManager notificationManager;
+    private Bitmap Large_Icon = null;
+    private TiApplication app;
 
-	private void generateNotification(String tittle, String message, Bitmap large_Icon, String app_id, JSONObject offer, int not_id) {
-    	try{
-			//Notification generation process
-			NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(service)
-			   .setContentTitle("Civico tiene una oferta")
-			   .setContentText(tittle)
-			   .setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS)
-			   .setLights(Color.parseColor("#524cff"), 350, 150)
-			   .setDefaults(Notification.DEFAULT_ALL)
-			   .setStyle( new NotificationCompat.BigTextStyle().bigText(tittle+"\n"+message) )
-			   .setSmallIcon(app.getApplicationContext().getApplicationInfo().icon);
-			//If theres no image, only display the clasical notification
-			
-			if(Large_Icon != null) {
-				notificationBuilder.setLargeIcon(large_Icon);
-			}
-			
-			//Intent creation process
-			Intent intent = service.getPackageManager().getLaunchIntentForPackage( app_id );
-			intent.setAction(Intent.ACTION_SEND);
-			Bundle bundleData = new Bundle();
-			bundleData.putString("offer", offer.toString());
-	        intent.putExtras(bundleData);
-			
-			PackageManager packageManager = service.getPackageManager();
-			List<ResolveInfo> activities = packageManager.queryIntentActivities(intent, 0);
-			boolean isIntentSafe = activities.size() > 0;
-			if( isIntentSafe == true ){
-				 intent.addCategory("android.intent.category.LAUNCHER");
-			     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			     PendingIntent contentIntent = PendingIntent.getActivity(app.getApplicationContext(), 0, intent, 0);
-				 notificationBuilder.setContentIntent(contentIntent);
-			}
+    public MonitorListener(BeaconService service) {
+        this.app = TiApplication.getInstance();
+        this.service = service;
+        this.notificationManager = (NotificationManager) this.service.getSystemService(Context.NOTIFICATION_SERVICE);
+    }
 
-		    //Show the notification
-			Notification notification = notificationBuilder.build();
-			notification.flags |= Notification.FLAG_AUTO_CANCEL;
-			notificationManager.notify(not_id, notification);
+    @Override
+    public void onExitedRegion(Region region) {
+        Log.e(BeaconsModule.TAG, "onExitedRegion, Civico-TiBeacons Service!");
+        //notificationManager.cancel(CIV_NOTIFICATION_ID);
+        service.ableToNotify(false);
+    }
 
-			//And the vibrate
-			Vibrator v = (Vibrator) service.getSystemService(Context.VIBRATOR_SERVICE);
-			v.vibrate(350);
+    @Override
+    public void onEnteredRegion(Region region, List<Beacon> beacons) {
+        if(!beacons.isEmpty()){
+            Log.e(BeaconsModule.TAG, "onEnteredRegion, Civico-TiBeacons Beacon Minor: " + beacons.get(0).getMinor());
+            try {
+                requestOffer( beacons.get(0) );
+                } catch (MalformedURLException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+    }
 
-			service.ableToNotify(true);
-    	}catch(Exception e){
-    		Log.e(BeaconsModule.TAG, e.toString());
-    	}
-	}
-	
-	private class ResponseHandler extends JsonHttpResponseHandler {
-		private Beacon beacon;
-		
-		public ResponseHandler(Beacon beacon) {
-			this.beacon = beacon;
-		}
-		
-		@Override
-	    public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-	    	try {
-				if(response != null){
-					JSONArray mOffers = response.getJSONArray("offers");
-					if(mOffers.length() > 0){
-						Random rand = new Random();
-						int mPos = rand.nextInt( mOffers.length() );
-						final JSONObject tOffer = mOffers.getJSONObject(mPos);
-						final String tittle = tOffer.getString("name");
-						final String content_text = tOffer.getString("description");
-						//String img_url = tOffer.getString("image");
-						// For optimization change the dimension to 24x24 factor by code for now to test image times
-						//int nott_dimension = (int)((getResources().getDisplayMetrics().density+1.0f) * 24);
-						//img_url = img_url.replace("h_500", "h_"+nott_dimension);
-						//img_url = img_url.replace("w_500", "w_"+nott_dimension);
-						//Log.d("Civico", tittle+'\n'+content_text+'\n'+img_url);
-						/* Get the image of the Offer
-						* Right now it's too heavy the load of this resource, I'm going to comment it and put the 
-						* default app icon instead to get a quicker notification. Also it's probably to change the 
-						* cloudinary with a better size than 500x500 probably something like 50x50 instead.
-						
-						AsyncHttpClient img_request = new AsyncHttpClient();
-						img_request.get( img_url, new FileAsyncHttpResponseHandler( TiApplication.getInstance().getApplicationContext() ) {
-						    @Override
-						    public void onSuccess(int statusCode, Header[] headers, File response) {
-						        // Do something with the file `response`
-						    	Log.d( "Civico", response.toString() );
-						    	Large_Icon = BitmapFactory.decodeFile(response.getPath());
-						    	generateNotification(tittle, content_text, Large_Icon, TiApplication.getInstance().getAppInfo().getId(), tOffer);
-						    }
+    private void requestOffer(final Beacon beacon) throws MalformedURLException {
+        // Make a request and get an offer based a beacon data
+        AsyncHttpClient client = new AsyncHttpClient();
+        URL url = new URL(BeaconsModule.API_URL + "/beacons/brands/" + beacon.getMinor());
+        client.get( url.toString(), null, new ResponseHandler(beacon));
+    }
 
-							@Override
-							public void onFailure(int arg0, Header[] arg1,Throwable arg2, File arg3) {
-								//Do another type of notification without the image
-								generateNotification(tittle, 
-													 content_text, 
-													 null,
-													 TiApplication.getInstance().getAppInfo().getId(),
-													 tOffer);
-							}
-						});
-						*/
-						if(!service.ableToNotify()){
-							generateNotification(tittle, content_text, null, app.getAppInfo().getId(), tOffer, beacon.getMinor());
-							service.ableToNotify(true);
-						}
-					}
-				}
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-	    }
-	}
+    private void generateNotification(String tittle, String message, Bitmap large_Icon, String app_id, JSONObject offer, int not_id) {
+        try{
+            //Notification generation process
+            NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(service)
+            .setContentTitle("Civico tiene una oferta")
+            .setContentText(tittle)
+            .setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS)
+            .setLights(Color.parseColor("#524cff"), 350, 150)
+            .setDefaults(Notification.DEFAULT_ALL)
+            .setStyle( new NotificationCompat.BigTextStyle().bigText(tittle+"\n"+message) )
+            .setSmallIcon(app.getApplicationContext().getApplicationInfo().icon);
+            //If theres no image, only display the clasical notification
+
+            if(Large_Icon != null) {
+                notificationBuilder.setLargeIcon(large_Icon);
+            }
+
+            //Intent creation process
+            Intent intent = service.getPackageManager().getLaunchIntentForPackage( app_id );
+            intent.setAction(Intent.ACTION_SEND);
+            Bundle bundleData = new Bundle();
+            bundleData.putString("offer", offer.toString());
+            intent.putExtras(bundleData);
+
+            PackageManager packageManager = service.getPackageManager();
+            List<ResolveInfo> activities = packageManager.queryIntentActivities(intent, 0);
+            boolean isIntentSafe = activities.size() > 0;
+            if( isIntentSafe == true ){
+                intent.addCategory("android.intent.category.LAUNCHER");
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                PendingIntent contentIntent = PendingIntent.getActivity(app.getApplicationContext(), 0, intent, 0);
+                notificationBuilder.setContentIntent(contentIntent);
+            }
+
+            //Show the notification
+            Notification notification = notificationBuilder.build();
+            notification.flags |= Notification.FLAG_AUTO_CANCEL;
+            notificationManager.notify(not_id, notification);
+
+            //And the vibrate
+            Vibrator v = (Vibrator) service.getSystemService(Context.VIBRATOR_SERVICE);
+            v.vibrate(350);
+
+            service.ableToNotify(true);
+            }catch(Exception e){
+            Log.e(BeaconsModule.TAG, e.toString());
+        }
+    }
+
+    private class ResponseHandler extends JsonHttpResponseHandler {
+        private Beacon beacon;
+
+        public ResponseHandler(Beacon beacon) {
+            this.beacon = beacon;
+        }
+
+        @Override
+        public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+            try {
+                if(response != null){
+                    JSONArray mOffers = response.getJSONArray("offers");
+                    if(mOffers.length() > 0){
+                        Random rand = new Random();
+                        int mPos = rand.nextInt( mOffers.length() );
+                        final JSONObject tOffer = mOffers.getJSONObject(mPos);
+                        final String tittle = tOffer.getString("name");
+                        final String content_text = tOffer.getString("description");
+                        //String img_url = tOffer.getString("image");
+                        // For optimization change the dimension to 24x24 factor by code for now to test image times
+                        //int nott_dimension = (int)((getResources().getDisplayMetrics().density+1.0f) * 24);
+                        //img_url = img_url.replace("h_500", "h_"+nott_dimension);
+                        //img_url = img_url.replace("w_500", "w_"+nott_dimension);
+                        //Log.d("Civico", tittle+'\n'+content_text+'\n'+img_url);
+                        /* Get the image of the Offer
+                        * Right now it's too heavy the load of this resource, I'm going to comment it and put the
+                        * default app icon instead to get a quicker notification. Also it's probably to change the
+                        * cloudinary with a better size than 500x500 probably something like 50x50 instead.
+
+                        AsyncHttpClient img_request = new AsyncHttpClient();
+                        img_request.get( img_url, new FileAsyncHttpResponseHandler( TiApplication.getInstance().getApplicationContext() ) {
+                            @Override
+                            public void onSuccess(int statusCode, Header[] headers, File response) {
+                                // Do something with the file `response`
+                                Log.d( "Civico", response.toString() );
+                                Large_Icon = BitmapFactory.decodeFile(response.getPath());
+                                generateNotification(tittle, content_text, Large_Icon, TiApplication.getInstance().getAppInfo().getId(), tOffer);
+                            }
+
+                            @Override
+                            public void onFailure(int arg0, Header[] arg1,Throwable arg2, File arg3) {
+                                //Do another type of notification without the image
+                                generateNotification(tittle,
+                                content_text,
+                                null,
+                                TiApplication.getInstance().getAppInfo().getId(),
+                                tOffer);
+                            }
+                        });
+                        */
+                        if(!service.ableToNotify()){
+                            generateNotification(tittle, content_text, null, app.getAppInfo().getId(), tOffer, beacon.getMinor());
+                            service.ableToNotify(true);
+                        }
+                    }
+                }
+                } catch (JSONException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+    }
 }
