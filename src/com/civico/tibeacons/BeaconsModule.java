@@ -41,4 +41,13 @@ public class BeaconsModule extends KrollModule {
             Log.e(TAG, e.toString());
         }
     }
+
+    public static String getApiUrl() {
+
+        if (BeaconsModule.API_URL != null) {
+            return BeaconsModule.API_URL;
+        }
+
+        return  TiApplication.getInstance().getAppProperties().getString("api.backend.url", null);
+    }
 }

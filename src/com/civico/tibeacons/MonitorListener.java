@@ -68,7 +68,7 @@ public class MonitorListener implements BeaconManager.MonitoringListener {
     private void requestOffer(final Beacon beacon) throws MalformedURLException {
         // Make a request and get an offer based a beacon data
         AsyncHttpClient client = new AsyncHttpClient();
-        URL url = new URL(BeaconsModule.API_URL + "/beacons/brands/" + beacon.getMinor());
+        URL url = new URL(BeaconsModule.getApiUrl() + "/beacons/brands/" + beacon.getMinor());
         client.get( url.toString(), null, new ResponseHandler(beacon));
     }
 
