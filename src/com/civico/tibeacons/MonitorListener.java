@@ -38,7 +38,8 @@ public class MonitorListener implements BeaconManager.MonitoringListener {
     private NotificationManager notificationManager;
     private Bitmap Large_Icon = null;
     private TiApplication app;
-
+    private int CIV_NOTIFICATION_ID = 24842;
+    
     public MonitorListener(BeaconService service) {
         this.app = TiApplication.getInstance();
         this.service = service;
@@ -47,16 +48,17 @@ public class MonitorListener implements BeaconManager.MonitoringListener {
 
     @Override
     public void onExitedRegion(Region region) {
-        Log.e(BeaconsModule.TAG, "onExitedRegion, Civico-TiBeacons Service!");
+        Log.d(BeaconsModule.TAG, "onExitedRegion, Civico-TiBeacons Service!");
         //notificationManager.cancel(CIV_NOTIFICATION_ID);
-        service.ableToNotify(false);
+        service.ableToNotify(true);
     }
 
     @Override
     public void onEnteredRegion(Region region, List<Beacon> beacons) {
         if(!beacons.isEmpty()){
-            Log.e(BeaconsModule.TAG, "onEnteredRegion, Civico-TiBeacons Beacon Minor: " + beacons.get(0).getMinor());
+            Log.d(BeaconsModule.TAG, "onEnteredRegion, Civico-TiBeacons Beacon Minor: " + beacons.get(0).getMinor());
             try {
+            	notificationManager.cancel(CIV_NOTIFICATION_ID);
                 requestOffer( beacons.get(0) );
                 } catch (MalformedURLException e) {
                 // TODO Auto-generated catch block
@@ -72,7 +74,7 @@ public class MonitorListener implements BeaconManager.MonitoringListener {
         client.get( url.toString(), null, new ResponseHandler(beacon));
     }
 
-    private void generateNotification(String tittle, String message, Bitmap large_Icon, String app_id, JSONObject offer, int not_id) {
+    private void generateNotification(String tittle, String message, Bitmap large_Icon, String app_id, JSONObject offer) {
         try{
             //Notification generation process
             NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(service)
@@ -97,27 +99,28 @@ public class MonitorListener implements BeaconManager.MonitoringListener {
             intent.putExtras(bundleData);
 
             PackageManager packageManager = service.getPackageManager();
-            List<ResolveInfo> activities = packageManager.queryIntentActivities(intent, 0);
-            boolean isIntentSafe = activities.size() > 0;
-            if( isIntentSafe == true ){
-                intent.addCategory("android.intent.category.LAUNCHER");
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                PendingIntent contentIntent = PendingIntent.getActivity(app.getApplicationContext(), 0, intent, 0);
-                notificationBuilder.setContentIntent(contentIntent);
-            }
+			List<ResolveInfo> activities = packageManager.queryIntentActivities(intent, 0);
+			boolean isIntentSafe = activities.size() > 0;
+			if( isIntentSafe == true ){
+				 intent.addCategory("android.intent.category.LAUNCHER");
+                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			     int requestID = (int) System.currentTimeMillis();
+			     PendingIntent contentIntent = PendingIntent.getActivity( TiApplication.getInstance().getApplicationContext(), requestID, intent, PendingIntent.FLAG_ONE_SHOT);
+				 notificationBuilder.setContentIntent(contentIntent);
+			}
 
             //Show the notification
             Notification notification = notificationBuilder.build();
             notification.flags |= Notification.FLAG_AUTO_CANCEL;
-            notificationManager.notify(not_id, notification);
+            notificationManager.notify(CIV_NOTIFICATION_ID, notification);
 
             //And the vibrate
             Vibrator v = (Vibrator) service.getSystemService(Context.VIBRATOR_SERVICE);
             v.vibrate(350);
 
-            service.ableToNotify(true);
-            }catch(Exception e){
-            Log.e(BeaconsModule.TAG, e.toString());
+            service.ableToNotify(false);
+        }catch(Exception e){
+        	Log.e(BeaconsModule.TAG, e.toString());
         }
     }
 
@@ -171,9 +174,8 @@ public class MonitorListener implements BeaconManager.MonitoringListener {
                             }
                         });
                         */
-                        if(!service.ableToNotify()){
-                            generateNotification(tittle, content_text, null, app.getAppInfo().getId(), tOffer, beacon.getMinor());
-                            service.ableToNotify(true);
+                        if(service.ableToNotify()){
+                            generateNotification(tittle, content_text, null, app.getAppInfo().getId(), tOffer);
                         }
                     }
                 }

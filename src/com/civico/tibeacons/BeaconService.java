@@ -26,11 +26,11 @@ public class BeaconService extends Service {
 
     //Notification vars
     private int CIV_NOTIFICATION_ID = 24842;
-    private boolean ableToNotify = false;
+    private boolean ableToNotify = true;
 
     @Override
     public void onCreate() {
-        Log.e(BeaconsModule.TAG, "Created Civico-TiBeacons Service!");
+        Log.d(BeaconsModule.TAG, "Created Civico-TiBeacons Service!");
 
         // The service is being created
         beaconManager = new BeaconManager( TiApplication.getInstance().getApplicationContext() );
@@ -60,13 +60,13 @@ public class BeaconService extends Service {
         // setBackgroundScanPeriod(long scanPeriodMillis, long waitTimeMillis)
         // scanPeriodMillis - How long to perform Bluetooth Low Energy scanning?
         // waitTimeMillis - How long to wait until performing next scanning?
-        // beaconManager.setBackgroundScanPeriod(250, 750);
+        beaconManager.setBackgroundScanPeriod(250, 750);
         beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
             @Override public void onServiceReady() {
                 try {
                     if(beaconManager.checkPermissionsAndService()){
                         beaconManager.startMonitoring(CIVICO_ESTIMOTE_BEACONS);
-                        Log.e(BeaconsModule.TAG, "Started Civico-TiBeacons Service!");
+                        Log.d(BeaconsModule.TAG, "Started Civico-TiBeacons Service!");
                     }
                     } catch (RemoteException e) {
                     Log.e(BeaconsModule.TAG, "Monitoring is unavailable, Civico-TiBeacons Service :(", e);
