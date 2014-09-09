@@ -15,7 +15,6 @@ import org.appcelerator.kroll.common.Log;
 
 import android.content.Intent;
 import android.os.Build;
-import android.R;
 
 @Kroll.module(name="Beacons", id="com.civico.tibeacons")
 public class BeaconsModule extends KrollModule {
@@ -36,7 +35,7 @@ public class BeaconsModule extends KrollModule {
         BeaconsModule.API_URL = apiUrl;
         Log.d(TAG, "Android version: "+Build.VERSION.SDK_INT);
         TiApplication.getInstance().getAppInfo().getVersion();
-        if(Build.VERSION.SDK_INT >= 18 /*Build.VERSION_CODES.ICE_CREAM_SANDWICH*/){
+        if(Build.VERSION.SDK_INT >= 18 /*Build.VERSION_CODES.JELLY_BEAN_MR2*/){
 	        try {
 	            Intent intent = new Intent(TiApplication.getInstance(), BeaconService.class);
 	            TiApplication.getInstance().startService(intent);

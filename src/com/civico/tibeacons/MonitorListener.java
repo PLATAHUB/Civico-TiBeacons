@@ -8,6 +8,8 @@ import java.util.Random;
 import org.apache.http.Header;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
+import org.appcelerator.titanium.util.TiRHelper;
+import org.appcelerator.titanium.util.TiRHelper.ResourceNotFoundException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,7 +21,9 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
@@ -58,7 +62,6 @@ public class MonitorListener implements BeaconManager.MonitoringListener {
         if(!beacons.isEmpty()){
             Log.d(BeaconsModule.TAG, "onEnteredRegion, Civico-TiBeacons Beacon Minor: " + beacons.get(0).getMinor());
             try {
-            	notificationManager.cancel(CIV_NOTIFICATION_ID);
                 requestOffer( beacons.get(0) );
                 } catch (MalformedURLException e) {
                 // TODO Auto-generated catch block
@@ -74,22 +77,22 @@ public class MonitorListener implements BeaconManager.MonitoringListener {
         client.get( url.toString(), null, new ResponseHandler(beacon));
     }
 
-    private void generateNotification(String tittle, String message, Bitmap large_Icon, String app_id, JSONObject offer) {
-        try{
+    private void generateNotification(String tittle, String message, Bitmap large_Icon, String app_id, JSONObject offer){
+    	try{
+    		notificationManager.cancel(CIV_NOTIFICATION_ID);
             //Notification generation process
             NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(service)
-            .setContentTitle("Civico tiene una oferta")
+            .setContentTitle("Civico tiene una oferta y no que mas decir.")
             .setContentText(tittle)
             .setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS)
             .setLights(Color.parseColor("#524cff"), 350, 150)
             .setDefaults(Notification.DEFAULT_ALL)
             .setStyle( new NotificationCompat.BigTextStyle().bigText(tittle+"\n"+message) )
-            .setSmallIcon(app.getApplicationContext().getApplicationInfo().icon);
+            .setSmallIcon( TiRHelper.getApplicationResource("drawable.noticon") );
+            
+            Bitmap lg_icon = BitmapFactory.decodeResource( app.getApplicationContext().getResources(), TiRHelper.getApplicationResource("drawable.appicon") );
             //If theres no image, only display the clasical notification
-
-            if(Large_Icon != null) {
-                notificationBuilder.setLargeIcon(large_Icon);
-            }
+            notificationBuilder.setLargeIcon(lg_icon);
 
             //Intent creation process
             Intent intent = service.getPackageManager().getLaunchIntentForPackage( app_id );
