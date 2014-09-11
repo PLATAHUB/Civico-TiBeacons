@@ -18,6 +18,7 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
@@ -26,6 +27,7 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 
 import com.estimote.sdk.Beacon;
@@ -53,7 +55,6 @@ public class MonitorListener implements BeaconManager.MonitoringListener {
     @Override
     public void onExitedRegion(Region region) {
         Log.d(BeaconsModule.TAG, "onExitedRegion, Civico-TiBeacons Service!");
-        //notificationManager.cancel(CIV_NOTIFICATION_ID);
         service.ableToNotify(true);
     }
 
@@ -74,6 +75,10 @@ public class MonitorListener implements BeaconManager.MonitoringListener {
         // Make a request and get an offer based a beacon data
         AsyncHttpClient client = new AsyncHttpClient();
         URL url = new URL(BeaconsModule.getApiUrl() + "/beacons/brands/" + beacon.getMinor());
+        if(BeaconsModule.getApiUrl() == null){
+        	SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(TiApplication.getInstance().getApplicationContext());
+        	url = new URL(prefs.getString("API_URL", null) + "/beacons/brands/" + beacon.getMinor());
+        }
         client.get( url.toString(), null, new ResponseHandler(beacon));
     }
 

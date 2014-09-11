@@ -13,8 +13,11 @@ import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.kroll.common.Log;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
+import android.preference.PreferenceManager;
 
 @Kroll.module(name="Beacons", id="com.civico.tibeacons")
 public class BeaconsModule extends KrollModule {
@@ -33,6 +36,11 @@ public class BeaconsModule extends KrollModule {
     @Kroll.method
     public void start(String apiUrl) {
         BeaconsModule.API_URL = apiUrl;
+        
+        //Set a shared preference for boot start service
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(TiApplication.getInstance().getApplicationContext());
+        prefs.edit().putString("API_URL", BeaconsModule.API_URL);
+        
         Log.d(TAG, "Android version: "+Build.VERSION.SDK_INT);
         TiApplication.getInstance().getAppInfo().getVersion();
         if(Build.VERSION.SDK_INT >= 18 /*Build.VERSION_CODES.JELLY_BEAN_MR2*/){
