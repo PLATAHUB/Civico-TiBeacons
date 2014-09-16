@@ -9,7 +9,11 @@ import android.content.Intent;
 import android.os.Build;
 
 public class EstimoteBroadcastReceiver extends BroadcastReceiver {
-
+	
+	public EstimoteBroadcastReceiver() {
+        super();
+    }
+	
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		// TODO Auto-generated method stub
